@@ -189,7 +189,7 @@ const $=document.getElementById("app");const N=s=>s.replace(/[\s.,·\-~()\[\]'"�
 let nick="",S={done:{},wrong:{}},mode="",seen={},cur=null,graded=false;
 const ld=k=>{try{return localStorage.getItem(k)}catch(e){return null}},sv=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
 const save=()=>sv("doq:"+nick,JSON.stringify(S));
-function home(){const last=ld("doq:last")||"";$.innerHTML=`<h1>📐 도형 꼭 외워 퀴즈</h1><div class=card><div class=mu>닉네임을 입력하면 다음에도 이어서 학습해요</div><input id=nk value="${last}" placeholder="닉네임" maxlength=20 style="margin:10px 0"><button class=p style="width:100%" onclick="login()">시작하기</button></div>`;document.getElementById("nk").onkeydown=e=>e.key=="Enter"&&login()}
+function home(){const last=ld("doq:last")||"";$.innerHTML=`<h1>📐 도형 꼭 외워 퀴즈</h1><div class=card><div class=mu>닉네임을 입력하면 다음에도 이어서 학습해요</div><input id=nk value="${last}" placeholder="닉네임" maxlength=20 style="margin:10px 0"><button class=p style="width:100%" onclick="login()">시작하기</button></div>`;document.getElementById("nk").onkeydown=e=>{if(e.key=="Enter"&&!e.isComposing&&e.keyCode!==229)login()}}
 function login(){const v=document.getElementById("nk").value.trim();if(!v)return;nick=v;sv("doq:last",v);try{S=JSON.parse(ld("doq:"+v))||{done:{},wrong:{}}}catch(e){S={done:{},wrong:{}}}S.done=S.done||{};S.wrong=S.wrong||{};menu()}
 function menu(){const c=s=>D.filter(d=>d.s==s),dn=s=>c(s).filter(d=>S.done[d.id]).length,w=Object.keys(S.wrong).length;
 const b=(m,t,n,t2)=>`<button class=big onclick="start('${m}')"><b>${t}</b><div class=mu>${t2}</div>${n!=null?`<div class=bar><i style="width:${n}%"></i></div>`:""}</button>`;
@@ -209,7 +209,7 @@ function render(e){const d=e?D[e.id]:cur;let r;
 if(e)r=`<div class="${e.ok?"ok":"no"}" style="margin-top:12px">${e.ok?"⭕ 정답!":"❌ 아쉬워요"} <span class=mu>${e.h==null?"":"(핵심어 "+e.h+"/"+d.k.length+")"}</span></div><div class=ans><b>정답</b><br>${d.a}</div><div class=row>${e.ok?"":`<button onclick="ovr()">내가 맞았어요</button>`}<button class=p onclick="fwd()">다음 →</button></div>`;
 else r=`<div class=row><button id=sk onclick="grade()">모르겠어요</button><button class=p id=sb onclick="grade()">정답 확인</button></div>`;
 frame(`<div class=card><span class=unit>${U[d.u]}</span><div class=q>${d.q}</div><textarea id=in rows=3 placeholder="정의를 입력하세요 (모르겠으면 빈 칸으로 Enter)" ${e?"readonly":""}>${e?esc(e.inp):""}</textarea>${r}${pbtn()}</div>`);
-const t=document.getElementById("in");t.focus();t.onkeydown=ev=>{if(ev.key=="Enter"&&!ev.shiftKey){ev.preventDefault();e?fwd():grade()}}}
+const t=document.getElementById("in");t.focus();t.onkeydown=ev=>{if(ev.isComposing||ev.keyCode===229)return;if(ev.key=="Enter"&&!ev.shiftKey){ev.preventDefault();e?fwd():grade()}}}
 function grade(){if(graded||!cur)return;const raw=document.getElementById("in").value,v=N(raw),k=cur.k,h=k.filter(g=>g.split("/").some(x=>v.includes(N(x)))).length,ok=h>=Math.ceil(k.length*.7);
 S.done[cur.id]=1;seen[cur.id]=1;(S.log=S.log||{})[cur.id]={inp:raw,ok,h};if(ok){if(mode=="r")delete S.wrong[cur.id]}else S.wrong[cur.id]=1;save();graded=true;const e={id:cur.id,inp:raw,ok,h};H.push(e);view=-1;render(e)}
 function ovr(){const i=view==-1?H.length-1:view,e=H[i];e.ok=true;delete S.wrong[e.id];(S.log=S.log||{})[e.id]={inp:e.inp,ok:true,h:e.h};save();render(e)}
